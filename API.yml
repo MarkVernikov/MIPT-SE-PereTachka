@@ -1,0 +1,677 @@
+openapi: 3.0.2
+info:
+  title: PereTachka API
+  description: API для сервиса по аренде автомобилей PereTachka
+  version: "1.0"
+servers:
+  - url: 'https://api.peretachka.com'
+    description: Основной сервер
+
+paths:
+  /users:
+    post:
+      summary: Регистрация нового пользователя
+      tags:
+        - Пользователи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /cars:
+    get:
+      summary: Получить список всех автомобилей
+      tags:
+        - Автомобили
+      parameters:
+        - in: query
+          name: location
+          schema:
+            type: string
+          description: Фильтр для поиска автомобилей по расположению
+      responses:
+        '200':
+          description: Список автомобилей, доступных для аренды
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Car'
+    
+  /users/{userId}:
+    get:
+      summary: Получить информацию о пользователе по ID
+      tags:
+        - Пользователи
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Пользователь не найден
+
+  /users/{userId}/verify:
+    post:
+      summary: Запросить верификацию пользователя по его ID
+      tags:
+        - Пользователи
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Запрос верификации отправлен
+        '404':
+          description: Пользователь не найден
+
+  /cars/{vin}:
+    get:
+      summary: Получить информацию об автомобиле по VIN
+      tags:
+        - Автомобили
+      parameters:
+        - in: path
+          name: vin
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Информация об автомобиле
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+        '404':
+          description: Автомобиль не найден
+
+  /rentals/{rentalId}:
+    get:
+      summary: Получить информацию о конкретной аренде
+      tags:
+        - Аренда
+      parameters:
+        - in: path
+          name: rentalId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация о аренде
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        '404':
+          description: Аренда не найдена
+
+  /rentals/rent/{user_id}:
+    post:
+      summary: Создать бронирование автомобиля
+      tags:
+        - Аренда
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rental'
+      responses:
+        '201':
+          description: Аренда успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        '400':
+          description: Неверный запрос
+
+  /transactions:
+    post:
+      summary: Создать транзакцию оплаты
+      tags:
+        - Транзакции
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '201':
+          description: Транзакция успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Неверный запрос
+  /transactions/{transactionId}:
+    get:
+      summary: Получить подробную информацию о транзакции
+      tags:
+        - Транзакции
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Подробная информация о запрошенной транзакции
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+
+
+  /reservations:
+    post:
+      summary: Создать бронирование автомобиля
+      tags:
+        - Бронирования
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+      responses:
+        '201':
+          description: Бронирование успешно создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          description: Неверный запрос
+  
+  
+
+ 
+  /car-deliveries/{deliveryId}:
+    get:
+      summary: Получить статус запроса на подачу автомобиля
+      tags:
+        - Подача авто
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация о статусе подачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarDelivery'
+        '404':
+          description: Запрос на подачу не найден
+  
+  /car-deliveries/update/{deliveryId}:
+    put:
+      summary: Обновление информации о подаче автомобиля
+      tags:
+        - Подача авто
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [requested, in_progress, completed, cancelled]
+      responses:
+        '200':
+          description: Статус подачи успешно обновлен
+        '404':
+          description: Запрос на подачу не найден
+        '400':
+          description: Некорректные данные обновлений
+
+  /car-deliveries/{rentalId}/:
+      post:
+        summary: Выполнить подачу авто
+        tags:
+          - Подача авто
+        parameters:
+          - in: path
+            name: deliveryId
+            required: true
+            schema:
+              type: string
+              format: uuid
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [requested, in_progress, completed, cancelled]
+        responses:
+          '200':
+            description: Статус подачи успешно обновлен
+          '404':
+            description: Запрос на подачу не найден
+          '400':
+            description: Некорректные данные обновлений
+
+  /cars/update/{vin}:
+    put:
+      summary: Обновить данные автомобиля по VIN
+      tags:
+        - Автомобили
+      parameters:
+        - in: path
+          name: vin
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Car'
+      responses:
+        '200':
+          description: Данные автомобиля успешно обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+        '400':
+          description: Ошибка в структуре запроса
+        '404':
+          description: Автомобиль не найден
+
+  /rentals/update/{rentalId}:
+    put:
+      summary: Обновить данные аренды
+      tags:
+        - Аренда
+      parameters:
+        - in: path
+          name: rentalId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rental'
+      responses:
+        '200':
+          description: Данные аренды успешно обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        '400':
+          description: Ошибка в структуре запроса
+        '404':
+          description: Аренда не найдена
+    
+  /rentals/delete/{rentalId}:
+    delete:
+      summary: Удалить аренду
+      tags:
+        - Аренда
+      parameters:
+        - in: path
+          name: rentalId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Аренда успешно удалена
+        '404':
+          description: Аренда не найдена
+
+  /reservations/{reservationId}:
+    put:
+      summary: Обновить данные бронирования
+      tags:
+        - Бронирования
+      parameters:
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reservation'
+      responses:
+        '200':
+          description: Данные бронирования успешно обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          description: Ошибка в структуре запроса
+        '404':
+          description: Бронирование не найдено
+
+  /reservations/delete/{reservationId}:
+    delete:
+      summary: Удалить бронирование
+      tags:
+        - Бронирования
+      parameters:
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Бронирование успешно удалено
+        '404':
+          description: Бронирование не найдено
+
+
+
+
+components:
+  schemas:
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        password:
+          type: string
+          format: password
+        verification_status:
+          type: boolean
+        rental_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rental'
+
+    Car:
+      type: object
+      properties:
+        vin:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        location:
+          type: string
+        status:
+          type: string
+          enum:
+            - available
+            - rented
+        damage_history:
+          type: array
+          items:
+            type: string
+        rate:
+          type: number
+          format: float
+
+    Rental:
+      type: object
+      properties:
+        rental_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        car_vin:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        total_cost:
+          type: number
+          format: float
+    
+    TransactionRequest:
+      type: object
+      required:
+        - user_id
+        - amount
+        - rental_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+        rental_id:
+          type: string
+          format: uuid
+
+    Transaction:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+        timestamp:
+          type: string
+          format: date-time
+        rental_id:
+          type: string
+          format: uuid
+
+    ReservationRequest:
+      type: object
+      required:
+        - user_id
+        - car_vin
+        - start_time
+        - end_time
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        car_vin:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+
+    Reservation:
+      type: object
+      properties:
+        reservation_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        car_vin:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+
+    CarDeliveryRequest:
+      type: object
+      required:
+        - customer_id
+        - driver_id
+        - delivery_location
+        - delivery_time
+      properties:
+        customer_id:
+          type: string
+          format: uuid
+        driver_id:
+          type: string
+          format: uuid
+        delivery_location:
+          type: string
+        delivery_time:
+          type: string
+          format: date-time
+
+    CarDelivery:
+      type: object
+      properties:
+        delivery_id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        driver_id:
+          type: string
+          format: uuid
+        delivery_location:
+          type: string
+        delivery_time:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+            - requested
+            - in_progress
+            - completed
+            - cancelled
+
+    RentalRequest:
+      type: object
+      required:
+        - user_id
+        - car_vin
+        - start_time
+        - end_time
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        car_vin:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+
+# schemas:
+
+
+  responses:
+    BadRequestError:
+      description: The request format is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundError:
+      description: The requested resource wasn't found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Unexpected error happen on the server side.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    GenericError:
+      description: Общий ответ об ошибке
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
